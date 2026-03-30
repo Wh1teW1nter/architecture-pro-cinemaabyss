@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: proxy-service
-          image: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/proxy-service:latest
+          image: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/proxy-service:latest
           imagePullPolicy: Always
           env:
             - name: MONOLITH_URL

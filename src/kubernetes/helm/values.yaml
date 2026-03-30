@@ -33,7 +33,7 @@ database:
 monolith:
   enabled: true
   image:
-    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/monolith
+    repository: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/monolith
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -55,7 +55,7 @@ proxyService:
   internalPort: 8000
   enabled: true
   image:
-    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/proxy-service
+    repository: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/proxy-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -86,7 +86,7 @@ proxyService:
 moviesService:
   enabled: true
   image:
-    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/movies-service
+    repository: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/movies-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -108,7 +108,7 @@ eventsService:
   internalPort: 8082
   enabled: true
   image:
-    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/events-service
+    repository: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/events-service
     tag: latest
     pullPolicy: Always
   replicas: 1

@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: events-service
-          image: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/events-service:latest
+          image: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/events-service:latest
           imagePullPolicy: Always
           env:
             - name: KAFKA_BROKERS
