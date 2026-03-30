@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: events
+kafka:
+  consumer:
+    bootstrapServers: ${KAFKA_BROKERS:localhost:9092}
+    groupId: events
+    payment:
+      topic: payment-events
+    user:
+      topic: user-events
+    movie:
+      topic: movie-events
+
+  producer:
+    bootstrapServers: ${KAFKA_BROKERS:localhost:9092}
+    payment:
+      topic: payment-events
+    user:
+      topic: user-events
+    movie:
+      topic: movie-events
+server:
+  port: 8082

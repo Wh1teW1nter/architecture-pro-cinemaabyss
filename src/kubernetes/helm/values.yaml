@@ -5,7 +5,7 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6
+  dockerconfigjson: eyJhdXRocyI6eyJnaGNyLmlvIjp7ImF1dGgiOiJSV3RoZEdWeWFXNWhRMmgxZG1GcmFHbHVZVHBuYUhCZldtUnVOM1p6YUZoTlVHRm9OV1Z6T0c1SmJtbFJiV2xJYmpSbldEbFVNVmxGTWxKVCJ9fX0=
 # Database configuration
 database:
   host: postgres
@@ -33,7 +33,7 @@ database:
 monolith:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/monolith
+    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/monolith
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -51,9 +51,11 @@ monolith:
 
 # Proxy service configuration
 proxyService:
+  externalPort: 8000
+  internalPort: 8000
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/proxy-service
+    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/proxy-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -68,12 +70,23 @@ proxyService:
     port: 80
     targetPort: 8000
     type: ClusterIP
+  env:
+    - name: MONOLITH_URL
+      value: "http://monolith:8080"
+    - name: MOVIES_SERVICE_URL
+      value: "http://movies-service:8081"
+    - name: EVENTS_SERVICE_URL
+      value: "http://events-service:8082"
+    - name: MOVIES_SERVICE_PERCENT
+      value: "50"
+    - name: MOVIES_MONOLITH_PERCENT
+      value: "50"
 
 # Movies service configuration
 moviesService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/movies-service
+    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/movies-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -91,9 +104,11 @@ moviesService:
 
 # Events service configuration
 eventsService:
+  externalPort: 8082
+  internalPort: 8082
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/events-service
+    repository: ghcr.io/Wh1teW1nter/architecture-pro-cinemaabyss/events-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -108,6 +123,9 @@ eventsService:
     port: 8082
     targetPort: 8082
     type: ClusterIP
+  env:
+    - name: KAFKA_BROKERS
+      value: kafka:9092
 
 # Kafka configuration
 kafka:
@@ -172,14 +190,4 @@ ingress:
         - path: /
           pathType: Prefix
           service: proxy-service
-          port: 80
-        - path: /api/events
-          pathType: Prefix
-          service: events-service
-          port: 8082
-
-# Application configuration
-config:
-  # Strangler Fig configuration
-  gradualMigration: "true"
-  moviesMigrationPercent: "100"
+          port: 8000

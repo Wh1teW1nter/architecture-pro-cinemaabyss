@@ -1,4 +1,4 @@
-# CinemaAbyss Helm Chart
+    # CinemaAbyss Helm Chart
 
 This Helm chart deploys the CinemaAbyss application on a Kubernetes cluster.
 

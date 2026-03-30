@@ -3,7 +3,7 @@ name: Docker Build and Push
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, feature/* ]
     paths:
       - 'src/**'
       - '.github/workflows/docker-build-push.yml'
@@ -48,12 +48,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,format=short
             type=ref,event=branch
-            latest
+            type=raw,value=latest
 
       - name: Build and push Monolith Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./src/monolith
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-monolith.outputs.tags }}
           labels: ${{ steps.meta-monolith.outputs.labels }}
@@ -70,16 +71,142 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,format=short
             type=ref,event=branch
-            latest
+            type=raw,value=latest
 
       - name: Build and push Movies Service Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./src/microservices/movies
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-movies.outputs.tags }}
           labels: ${{ steps.meta-movies.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      
+      - name: Extract metadata (tags, labels) for Events Service
+        id: meta-events
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.EVENTS_SERVICE_IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest
+
+      - name: Build and push Events Service Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/microservices/events
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-events.outputs.tags }}
+          labels: ${{ steps.meta-events.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata (tags, labels) for Proxy Service
+        id: meta-proxy
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROXY_SERVICE_IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest
+
+      - name: Build and push Proxy Service Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/microservices/proxy
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-proxy.outputs.tags }}
+          labels: ${{ steps.meta-proxy.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start services with Docker Compose
+        run: docker compose up -d
+
+      - name: Wait for services to be healthy
+        run: |
+          for i in {1..60}; do
+            if docker compose ps --filter "status=running" | grep -q "healthy" && \
+               docker compose exec -T postgres pg_isready -U postgres -d cinemaabyss && \
+               docker compose exec -T kafka kafka-topics.sh --list --bootstrap-server localhost:9092; then
+              echo "Services are ready"
+              break
+            fi
+            echo "Waiting for services... ($i/60)"
+            sleep 2
+          done
+          if [ $i -eq 60 ]; then
+            echo "Services failed to become healthy"
+            exit 1
+          fi
+
+      - name: Run API Tests
+        run: |
+          cd tests/postman
+          npm install
+          npm run test:local
+
+      - name: Save Monolith Logs
+        if: always()
+        run: docker compose logs monolith > monolith-logs.txt
+      - name: Upload Monolith Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monolith-logs
+          path: monolith-logs.txt
+      - name: Save Events Service Logs
+        if: always()
+        run: docker compose logs events-service > events-logs.txt
+      - name: Upload Events Service Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: events-logs
+          path: events-logs.txt
+      - name: Save Proxy Logs
+        if: always()
+        run: docker compose logs proxy-service > proxy-logs.txt
+      - name: Upload Proxy Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-logs
+          path: proxy-logs.txt
+      - name: Save Postgres Logs
+        if: always()
+        run: docker compose logs postgres > postgres-logs.txt
+      - name: Upload Postgres Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-logs
+          path: postgres-logs.txt
+      - name: Save Kafka Logs
+        if: always()
+        run: docker compose logs kafka > kafka-logs.txt
+      - name: Upload Kafka Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kafka-logs
+          path: kafka-logs.txt
+      - name: Save Zookeeper Logs
+        if: always()
+        run: docker compose logs zookeeper > zookeeper-logs.txt
+      - name: Upload Zookeeper Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zookeeper-logs
+          path: zookeeper-logs.txt
