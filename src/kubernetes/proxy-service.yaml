@@ -22,6 +22,8 @@ spec:
       labels:
         app: proxy-service
     spec:
+      imagePullSecrets:
+        - name: dockerconfigjson
       containers:
         - name: proxy-service
           image: ghcr.io/wh1tew1nter/architecture-pro-cinemaabyss/proxy-service:latest
