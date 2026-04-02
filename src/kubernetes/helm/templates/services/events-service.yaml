@@ -29,6 +29,8 @@ spec:
           imagePullPolicy: {{ .Values.eventsService.image.pullPolicy }}
           env:
           {{- toYaml .Values.eventsService.env | nindent 10 }}
+      imagePullSecrets:
+        - name: dockerconfigjson
 ---
 apiVersion: v1
 kind: Service
