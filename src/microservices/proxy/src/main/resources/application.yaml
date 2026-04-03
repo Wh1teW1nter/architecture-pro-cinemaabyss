@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: proxy
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: movies_service_monolith
+              uri: ${MONOLITH_URL:http://localhost:8080}
+              predicates:
+                - Path=/api/movies/**
+                - Weight=weight, ${MOVIES_MONOLITH_PERCENT:50}
+            - id: movies_service_microservice
+              uri: ${MOVIES_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/movies/**
+                - Weight=weight, ${MOVIES_SERVICE_PERCENT:50}
+            - id: users_service
+              uri: ${MONOLITH_URL:http://localhost:8080}
+              predicates:
+                - Path=/api/users/**
+            - id: payments_service
+              uri: ${MONOLITH_URL:http://localhost:8080}
+              predicates:
+                - Path=/api/payments/**
+            - id: subscriptions_service
+              uri: ${MONOLITH_URL:http://localhost:8080}
+              predicates:
+                - Path=/api/subscriptions/**
+            - id: events_service
+              uri: ${EVENTS_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/events/**
+
+server:
+  port: 8000

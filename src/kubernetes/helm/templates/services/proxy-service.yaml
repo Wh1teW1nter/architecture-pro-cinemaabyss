@@ -25,7 +25,12 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        ..... тут
+        image:  {{ .Values.proxyService.image.repository }}:{{ .Values.proxyService.image.tag }}
+        imagePullPolicy: {{ .Values.proxyService.image.pullPolicy }}
+        env:
+          {{- toYaml .Values.proxyService.env | nindent 10 }}
+      imagePullSecrets:
+        - name: dockerconfigjson
 ---
 apiVersion: v1
 kind: Service
@@ -38,5 +43,9 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   selector:
-    ... и тут
+    app: proxy-service
+  ports:
+    - port: {{ .Values.proxyService.externalPort }}
+      targetPort: {{ .Values.proxyService.internalPort }}
+  type: ClusterIP
 {{- end }}

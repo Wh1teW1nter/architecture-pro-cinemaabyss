@@ -1,0 +1,34 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User", "End user of the CinemaAbyss platform")
+
+System_Boundary(cinema_abyss, "CinemaAbyss System") {
+    Container(api_gateway, "API Gateway", "Go/HTTP Server", "Single entry point for all external requests, routes to appropriate microservices")
+
+    Container(user_service, "User Service", "Go Microservice", "Manages the lifecycle of users")
+
+    Container(movie_service, "Movie Service", "Go Microservice", "Manages movie catalog")
+
+    Container(payment_service, "Payment Service", "Go Microservice", "Processing user payments")
+
+    Container(subscription_service, "Subscription Service", "Go Microservice", "User subscription management")
+
+    ContainerDb(shared_db, "Shared Database", "PostgreSQL", "Central data store for all domains (users, movies, payments, subscriptions)")
+}
+
+Rel(user, api_gateway, "Interact via Web/Mobile App", "HTTPS/JSON")
+
+Rel(api_gateway, user_service, "Routes requests to", "HTTP/JSON")
+Rel(api_gateway, movie_service, "Routes requests to", "HTTP/JSON")
+Rel(api_gateway, payment_service, "Routes requests to", "HTTP/JSON")
+Rel(api_gateway, subscription_service, "Routes requests to", "HTTP/JSON")
+
+Rel(user_service, shared_db, "Reads/Writes", "SQL")
+Rel(movie_service, shared_db, "Reads/Writes", "SQL")
+Rel(payment_service, shared_db, "Reads/Writes", "SQL")
+Rel(subscription_service, shared_db, "Reads/Writes", "SQL")
+
+
+LAYOUT_WITH_LEGEND()
+@enduml
